@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bitforge"
+version = "0.1.0"
+description = "Shrink any LLM to fit in your pocket - Auto-compress language models for microcontrollers"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Aman Sachan", email = "amansachan92905@gmail.com"}
+]
+keywords = ["llm", "quantization", "microcontroller", "embedded", "tinyml", "compression"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Embedded Systems",
+]
+dependencies = [
+    "torch>=2.0.0",
+    "numpy>=1.24.0",
+    "safetensors>=0.4.0",
+    "transformers>=4.35.0",
+    "jinja2>=3.1.0",
+    "click>=8.1.0",
+    "tqdm>=4.66.0",
+    "huggingface_hub>=0.19.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.5.0",
+]
+
+[project.scripts]
+bitforge = "bitforge.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/AmSach/bitforge"
+Documentation = "https://github.com/AmSach/bitforge#readme"
+Repository = "https://github.com/AmSach/bitforge"
+Issues = "https://github.com/AmSach/bitforge/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bitforge*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
