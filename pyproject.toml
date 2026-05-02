@@ -56,6 +56,7 @@ Issues = "https://github.com/AmSach/bitforge/issues"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["bitforge*"]
+exclude = ["src*"]
 
 [tool.black]
 line-length = 100
@@ -70,3 +71,8 @@ python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["src", ".git", "__pycache__"]
+addopts = "-v --tb=short"

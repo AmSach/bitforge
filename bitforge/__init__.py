@@ -8,17 +8,37 @@ From 7B parameters to 8KB RAM.
 __version__ = "0.1.0"
 __author__ = "Aman Sachan"
 
-from bitforge.compress.quantize import Quantizer, QuantizationConfig
-from bitforge.generate.c_codegen import CCodeGenerator
-from bitforge.targets.esp32 import ESP32Target
+from bitforge.compress.quantize import (
+    LayerQuantizationResult,
+    QuantizationConfig,
+    QuantizationMode,
+    QuantizationResult,
+    Quantizer,
+)
+from bitforge.context import CompressedContext, ContextCompressionConfig, ContextCompressor
+from bitforge.generate.c_codegen import CCodeGenerator, GeneratedFile, GeneratedProject
+from bitforge.prune import BlockPruner, PrunedLayer, PrunedModelResult, PruningConfig
 from bitforge.targets.arduino import ArduinoTarget
+from bitforge.targets.esp32 import ESP32Target
 from bitforge.targets.stm32 import STM32Target
 
 __all__ = [
     "Quantizer",
-    "QuantizationConfig", 
+    "QuantizationConfig",
+    "QuantizationMode",
+    "QuantizationResult",
+    "LayerQuantizationResult",
+    "CompressedContext",
+    "ContextCompressionConfig",
+    "ContextCompressor",
     "CCodeGenerator",
+    "GeneratedFile",
+    "GeneratedProject",
     "ESP32Target",
     "ArduinoTarget",
     "STM32Target",
+    "BlockPruner",
+    "PruningConfig",
+    "PrunedLayer",
+    "PrunedModelResult",
 ]

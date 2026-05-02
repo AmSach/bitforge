@@ -464,6 +464,37 @@ def simulate(
         click.echo(f"   Memory used: ~{result.memory_used_bytes // 1024} KB")
 
 
+
+
+@main.command()
+@click.argument("model_path", type=click.Path(exists=True))
+@click.option("--budget-bytes", type=int, required=True, help="Maximum bytes for the pruned export")
+@click.option("--block-size", type=int, default=64, help="Pruning block size")
+@click.option("--keep-ratio", type=float, default=0.15, help="Initial keep ratio")
+def prune(model_path: str, budget_bytes: int, block_size: int, keep_ratio: float):
+    """Prune a model export down toward a hardware budget."""
+    from bitforge.model_loader import ModelLoader
+    from bitforge.prune import BlockPruner, PruningConfig
+    import json
+
+    loader = ModelLoader()
+    loaded = loader.load(model_path)
+    pruner = BlockPruner(PruningConfig(block_size=block_size, target_keep_ratio=keep_ratio))
+    pruned = pruner.prune_to_budget(loaded.weights, budget_bytes=budget_bytes)
+
+    out = Path(model_path) / "pruned_export.json" if Path(model_path).is_dir() else Path("./pruned_export.json")
+    out.write_text(json.dumps({
+        "model": loaded.name,
+        "budget_bytes": budget_bytes,
+        "original_nbytes": pruned.original_nbytes,
+        "sparse_nbytes": pruned.sparse_nbytes,
+        "compression_ratio": pruned.compression_ratio,
+        "keep_ratio": pruned.keep_ratio,
+    }, indent=2))
+    click.echo(f"Pruned export written to {out}")
+    click.echo(f"Compression ratio: {pruned.compression_ratio:.2f}x")
+    click.echo(f"Keep ratio: {pruned.keep_ratio:.2%}")
+
 @main.command()
 @click.argument("model_path", type=click.Path(exists=True))
 @click.option(
