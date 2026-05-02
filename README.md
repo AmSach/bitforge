@@ -95,12 +95,20 @@ For a Raspberry Pi demo, use:
 - block pruning for the least important layers
 - a strict max-token limit
 
-The simulator reports throughput estimates, and the pruning/context tools reduce the amount of work before the model even starts.
+For an ESP32-class demo, the realistic story is narrower:
+
+- use a tiny model only
+- keep the context brutally short
+- keep just enough KV cache to continue the conversation
+- prune hard before export
+- treat throughput as a toy-demo metric, not a full chat experience
+
+The simulator reports throughput estimates, and the pruning/context/KV tools reduce the amount of work before the model even starts.
 
 ## CLI you can use
 
 ```bash
-bitforge compress gpt2 --target esp32-s3 --bits 4 --output ./compressed_model
+bitforge compress tiny-model --target esp32-s3 --bits 4 --output ./compressed_model
 bitforge prune ./compressed_model --budget-bytes 200000
 bitforge simulate ./compressed_model --prompt "Hello"
 ```
@@ -134,3 +142,37 @@ If you want the fastest proof, the winning strategy is:
 5. keep the active window tiny so tokens/sec stays high
 
 That’s the actual path to a convincing demo on small hardware.
+
+
+## ESP branch
+
+There is now a dedicated `esp-model` branch with a tiny controller path:
+
+- `TinyEspController` for compact intent/action demos
+- KV cache compression for small active context windows
+- block pruning for budget-limited exports
+- the normal compression pipeline remains available too
+
+### What the ESP path is for
+
+This is for a **small, controlled device assistant**:
+
+- turn things on/off
+- set modes
+- read status
+- answer a few fixed intents
+
+It is not a general sentient agent. It is a tiny controller that can be trained on a handful of task examples and made fast enough to feel immediate.
+
+### Example
+
+```python
+from bitforge import EspTaskExample, TinyEspController
+
+model = TinyEspController()
+model.fit([
+    EspTaskExample(text="turn on the light", label="control_light"),
+    EspTaskExample(text="check status", label="status_check"),
+])
+print(model.predict("turn on the light now"))
+```

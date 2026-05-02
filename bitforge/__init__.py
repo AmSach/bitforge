@@ -16,6 +16,7 @@ from bitforge.compress.quantize import (
     Quantizer,
 )
 from bitforge.context import CompressedContext, ContextCompressionConfig, ContextCompressor
+from bitforge.esp.model import EspTaskExample, EspTaskPrediction, TinyEspController
 from bitforge.generate.c_codegen import CCodeGenerator, GeneratedFile, GeneratedProject
 from bitforge.kvcache import KVCacheCompressor, KVCacheConfig, PackedKVLayer, PackedPastKeyValues, PackedTensor
 from bitforge.prune import BlockPruner, PrunedLayer, PrunedModelResult, PruningConfig
@@ -37,6 +38,9 @@ __all__ = [
     "PackedTensor",
     "PackedKVLayer",
     "PackedPastKeyValues",
+    "EspTaskExample",
+    "EspTaskPrediction",
+    "TinyEspController",
     "CCodeGenerator",
     "GeneratedFile",
     "GeneratedProject",
