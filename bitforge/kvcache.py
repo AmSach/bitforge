@@ -15,6 +15,7 @@ bandwidth, and memory churn on long generations.
 
 from __future__ import annotations
 
+from collections.abc import Iterable as IterableABC
 from dataclasses import dataclass, asdict
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -176,6 +177,46 @@ class KVCacheCompressor:
         avg_bits = int(round(float(allocation.float().mean().item())))
         return avg_bits if avg_bits in {2, 3, 4, 8} else 4
 
+    def _extract_kv_pair(self, item: Any) -> Optional[Tuple[torch.Tensor, torch.Tensor]]:
+        if isinstance(item, tuple) and len(item) >= 2 and isinstance(item[0], torch.Tensor) and isinstance(item[1], torch.Tensor):
+            return item[0], item[1]
+        if isinstance(item, list) and len(item) >= 2 and isinstance(item[0], torch.Tensor) and isinstance(item[1], torch.Tensor):
+            return item[0], item[1]
+        if hasattr(item, "keys") and hasattr(item, "values"):
+            try:
+                key = item.keys() if callable(item.keys) else item.key_cache
+                value = item.values() if callable(item.values) else item.value_cache
+                if isinstance(key, torch.Tensor) and isinstance(value, torch.Tensor):
+                    return key, value
+            except Exception:
+                pass
+        return None
+
+    def _normalize_cache(self, past_key_values: Any) -> List[Tuple[torch.Tensor, torch.Tensor]]:
+        if past_key_values is None:
+            return []
+        if hasattr(past_key_values, "to_legacy_cache"):
+            try:
+                past_key_values = past_key_values.to_legacy_cache()
+            except Exception:
+                pass
+
+        if isinstance(past_key_values, (tuple, list)):
+            items = list(past_key_values)
+        elif isinstance(past_key_values, IterableABC) and not isinstance(
+            past_key_values, (torch.Tensor, np.ndarray, dict, str, bytes)
+        ):
+            items = list(past_key_values)
+        else:
+            items = [past_key_values]
+
+        normalized: List[Tuple[torch.Tensor, torch.Tensor]] = []
+        for item in items:
+            pair = self._extract_kv_pair(item)
+            if pair is not None:
+                normalized.append(pair)
+        return normalized
+
     def compress_tensor(self, tensor: torch.Tensor, bits: Optional[int] = None) -> PackedTensor:
         seq_len = tensor.shape[2] if tensor.dim() >= 3 else tensor.shape[0]
         selected_bits = bits or self.choose_bits(seq_len)
@@ -219,7 +260,7 @@ class KVCacheCompressor:
 
     def compress_past_key_values(
         self,
-        past_key_values: Sequence[Tuple[torch.Tensor, torch.Tensor]],
+        past_key_values: Any,
     ) -> PackedPastKeyValues:
         import time
 
@@ -229,7 +270,8 @@ class KVCacheCompressor:
         packed_bytes = 0
         tokens_processed = 0
 
-        for idx, (key, value) in enumerate(past_key_values):
+        normalized = self._normalize_cache(past_key_values)
+        for idx, (key, value) in enumerate(normalized):
             layer = self.compress_layer(idx, key, value)
             layers.append(layer)
             original_bytes += key.numel() * key.element_size() + value.numel() * value.element_size()
@@ -254,9 +296,12 @@ class KVCacheCompressor:
 
     def decompress_past_key_values(
         self,
-        packed: PackedPastKeyValues,
+        packed: Any,
     ) -> List[Tuple[torch.Tensor, torch.Tensor]]:
-        return [self.decompress_layer(layer) for layer in packed.layers]
+        if isinstance(packed, PackedPastKeyValues):
+            return [self.decompress_layer(layer) for layer in packed.layers]
+        normalized = self._normalize_cache(packed)
+        return [(key, value) for key, value in normalized]
 
     def stats(self) -> Dict[str, float]:
         packed = max(1, self._stats["packed_bytes"])
