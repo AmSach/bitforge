@@ -176,3 +176,25 @@ model.fit([
 ])
 print(model.predict("turn on the light now"))
 ```
+
+## Benchmarks
+
+### Demo comparison
+
+![](/bitforge_demo_metrics.png)
+
+The current branch has been exercised on a real tiny model (`sshleifer/tiny-gpt2`) in a constrained environment.
+
+| Metric | Before | After |
+|---|---:|---:|
+| KV cache compression | 0x | 8.0x |
+| Context trimming | 1.0x | 5.0x |
+| Block pruning | 1.0x | 8.77x |
+| Example intent controller | N/A | trained and predicting |
+| Generated tokens | 12 | 12 |
+
+#### Notes
+
+- The ESP branch is for tiny intent routing and device control, not a full general chatbot.
+- The main branch is for compression and export tooling.
+- For real ESP hardware, keep the model small and the context brutally short.
