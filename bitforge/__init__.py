@@ -17,6 +17,7 @@ from bitforge.compress.quantize import (
 )
 from bitforge.context import CompressedContext, ContextCompressionConfig, ContextCompressor
 from bitforge.generate.c_codegen import CCodeGenerator, GeneratedFile, GeneratedProject
+from bitforge.kvcache import KVCacheCompressor, KVCacheConfig, PackedKVLayer, PackedPastKeyValues, PackedTensor
 from bitforge.prune import BlockPruner, PrunedLayer, PrunedModelResult, PruningConfig
 from bitforge.targets.arduino import ArduinoTarget
 from bitforge.targets.esp32 import ESP32Target
@@ -31,6 +32,11 @@ __all__ = [
     "CompressedContext",
     "ContextCompressionConfig",
     "ContextCompressor",
+    "KVCacheCompressor",
+    "KVCacheConfig",
+    "PackedTensor",
+    "PackedKVLayer",
+    "PackedPastKeyValues",
     "CCodeGenerator",
     "GeneratedFile",
     "GeneratedProject",
